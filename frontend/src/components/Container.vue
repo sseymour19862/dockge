@@ -51,7 +51,6 @@
                 <font-awesome-icon icon="edit" />
                 {{ $t("Edit") }}
             </button>
-            <button v-if="false" class="btn btn-normal me-2">Rename</button>
             <button class="btn btn-danger" @click="remove">
                 <font-awesome-icon icon="trash" />
                 {{ $t("deleteContainer") }}
