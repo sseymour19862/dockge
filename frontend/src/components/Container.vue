@@ -46,13 +46,13 @@
             </router-link>
         </div>
 
-        <div v-if="isEditMode" class="mt-2">
-            <button class="btn btn-normal me-2" @click="showConfig = !showConfig">
+        <div v-if="isEditMode" class="function">
+            <button class="btn btn-normal" @click="showConfig = !showConfig">
                 <font-awesome-icon icon="edit" />
                 {{ $t("Edit") }}
             </button>
             <button v-if="false" class="btn btn-normal me-2">Rename</button>
-            <button class="btn btn-danger me-2" @click="remove">
+            <button class="btn btn-danger" @click="remove">
                 <font-awesome-icon icon="trash" />
                 {{ $t("deleteContainer") }}
             </button>
