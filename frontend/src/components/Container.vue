@@ -1,5 +1,5 @@
 <template>
-    <div class="shadow-box big-padding mb-3 container">
+    <div class="shadow-box mb-3 container">
         <div class="row">
             <div class="col-7">
                 <h4>{{ name }}</h4>
@@ -14,14 +14,36 @@
                     </a>
                 </div>
             </div>
-            <div class="col-5">
-                <div class="function">
-                    <router-link v-if="!isEditMode" class="btn btn-normal" :to="terminalRouteLink" disabled="">
-                        <font-awesome-icon icon="terminal" />
-                        Bash
-                    </router-link>
-                </div>
-            </div>
+        </div>
+        <div v-if="!isEditMode" class="function">
+            <button v-if="status === 'running'" class="btn btn-normal" @click="pause()">
+                <font-awesome-icon class="me-1" icon="pause" />
+                {{ $t('pauseContainerButton') }}
+            </button>
+            <button v-if="status === 'paused'" class="btn btn-normal" @click="unpause()">
+                <font-awesome-icon class="me-1" icon="play" />
+                {{ $t('unpauseContainerButton') }}
+            </button>
+            <button v-if="status === 'exited'" class="btn btn-normal" @click="start()">
+                <font-awesome-icon class="me-1" icon="play" />
+                {{ $t('startContainerButton') }}
+            </button>
+            <button v-if="status !== 'exited'" class="btn btn-normal" @click="stop()">
+                <font-awesome-icon class="me-1" icon="stop" />
+                {{ $t('stopContainerButton') }}
+            </button>
+            <button class="btn btn-normal" @click="kill()">
+                <font-awesome-icon class="me-1" icon="ban" />
+                {{ $t('killContainerButton') }}
+            </button>
+            <button class="btn btn-normal" @click="restart()">
+                <font-awesome-icon class="me-1" icon="rotate" />
+                {{ $t('restartContainerButton') }}
+            </button>
+            <router-link class="btn btn-normal" :to="terminalRouteLink">
+                <font-awesome-icon class="me-1" icon="terminal" />
+                {{ $t('bashContainerButton') }}
+            </router-link>
         </div>
 
         <div v-if="isEditMode" class="mt-2">
@@ -284,6 +306,54 @@ export default defineComponent({
         remove() {
             delete this.jsonObject.services[this.name];
         },
+        pause() {
+            this.processing = true;
+
+            this.$root.emitAgent(this.stack.endpoint, "pauseContainer", this.stack.name, this.name, (res) => {
+                this.processing = false;
+                this.$root.toastRes(res);
+            });
+        },
+        unpause() {
+            this.processing = true;
+
+            this.$root.emitAgent(this.stack.endpoint, "unpauseContainer", this.stack.name, this.name, (res) => {
+                this.processing = false;
+                this.$root.toastRes(res);
+            });
+        },
+        restart() {
+            this.processing = true;
+
+            this.$root.emitAgent(this.stack.endpoint, "restartContainer", this.stack.name, this.name, (res) => {
+                this.processing = false;
+                this.$root.toastRes(res);
+            });
+        },
+        start() {
+            this.processing = true;
+
+            this.$root.emitAgent(this.stack.endpoint, "startContainer", this.stack.name, this.name, (res) => {
+                this.processing = false;
+                this.$root.toastRes(res);
+            });
+        },
+        stop() {
+            this.processing = true;
+
+            this.$root.emitAgent(this.stack.endpoint, "stopContainer", this.stack.name, this.name, (res) => {
+                this.processing = false;
+                this.$root.toastRes(res);
+            });
+        },
+        kill() {
+            this.processing = true;
+
+            this.$root.emitAgent(this.stack.endpoint, "killContainer", this.stack.name, this.name, (res) => {
+                this.processing = false;
+                this.$root.toastRes(res);
+            });
+        }
     }
 });
 </script>
@@ -292,6 +362,9 @@ export default defineComponent({
 @import "../styles/vars";
 
 .container {
+    padding: 0;
+    overflow: hidden;
+
     .image {
         font-size: 0.8rem;
         color: #6c757d;
@@ -300,13 +373,22 @@ export default defineComponent({
         }
     }
 
-    .function {
-        align-content: center;
+    > .row {
+        padding: 20px;
+    }
+
+    > .function {
         display: flex;
         height: 100%;
         width: 100%;
         align-items: center;
-        justify-content: end;
+
+        > a,
+        > button {
+            padding: 10px;
+            flex-grow: 1;
+            border-radius: 0;
+        }
     }
 }
 </style>

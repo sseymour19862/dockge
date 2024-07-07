@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 // 2) add the icon name to the library.add() statement below.
 import {
     faArrowAltCircleUp,
+    faBan,
     faCog,
     faEdit,
     faEye,
@@ -58,6 +59,7 @@ import {
 
 library.add(
     faArrowAltCircleUp,
+    faBan,
     faCog,
     faEdit,
     faEye,
