@@ -113,11 +113,11 @@
     "removeAgent": "Remove Agent",
     "removeAgentMsg": "Are you sure you want to remove this agent?",
     "LongSyntaxNotSupported": "Long syntax is not supported here. Please use the YAML editor.",
-    "pauseContainerButton": "Pause",
-    "unpauseContainerButton": "Unpause",
-    "startContainerButton": "Start",
-    "stopContainerButton": "Stop",
-    "killContainerButton": "Kill",
-    "restartContainerButton": "Restart",
-    "bashContainerButton": "Bash"
+    "pauseContainer": "Pause",
+    "unpauseContainer": "Unpause",
+    "startContainer": "Start",
+    "stopContainer": "Stop",
+    "killContainer": "Kill",
+    "restartContainer": "Restart",
+    "bashContainer": "Bash"
 }
