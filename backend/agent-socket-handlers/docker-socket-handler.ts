@@ -2,6 +2,7 @@ import { AgentSocketHandler } from "../agent-socket-handler";
 import { DockgeServer } from "../dockge-server";
 import { callbackError, callbackResult, checkLogin, DockgeSocket, ValidationError } from "../util-server";
 import { Stack } from "../stack";
+import { Container } from "../container";
 import { AgentSocket } from "../../common/agent-socket";
 
 export class DockerSocketHandler extends AgentSocketHandler {
@@ -238,6 +239,150 @@ export class DockerSocketHandler extends AgentSocketHandler {
                     ok: true,
                     dockerNetworkList,
                 }, callback);
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // pause container
+        agentSocket.on("pauseContainer", async (stackName : unknown, serviceName : unknown, callback) => {
+            try {
+                checkLogin(socket);
+
+                if (typeof(stackName) !== "string") {
+                    throw new ValidationError("Stack name must be a string");
+                }
+                if (typeof(serviceName) !== "string") {
+                    throw new ValidationError("Service name must be a string");
+                }
+
+                const stack = await Container.getContainerByStack(server, stackName, serviceName);
+                await stack.pause(socket);
+                callbackResult({
+                    ok: true,
+                    msg: "Paused"
+                }, callback);
+                server.sendStackList();
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // unpause container
+        agentSocket.on("unpauseContainer", async (stackName : unknown, serviceName : unknown, callback) => {
+            try {
+                checkLogin(socket);
+
+                if (typeof(stackName) !== "string") {
+                    throw new ValidationError("Stack name must be a string");
+                }
+                if (typeof(serviceName) !== "string") {
+                    throw new ValidationError("Service name must be a string");
+                }
+
+                const stack = await Container.getContainerByStack(server, stackName, serviceName);
+                await stack.unpause(socket);
+                callbackResult({
+                    ok: true,
+                    msg: "Unpaused"
+                }, callback);
+                server.sendStackList();
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // restart container
+        agentSocket.on("restartContainer", async (stackName : unknown, serviceName : unknown, callback) => {
+            try {
+                checkLogin(socket);
+
+                if (typeof(stackName) !== "string") {
+                    throw new ValidationError("Stack name must be a string");
+                }
+                if (typeof(serviceName) !== "string") {
+                    throw new ValidationError("Service name must be a string");
+                }
+
+                const stack = await Container.getContainerByStack(server, stackName, serviceName);
+                await stack.restart(socket);
+                callbackResult({
+                    ok: true,
+                    msg: "Restarted"
+                }, callback);
+                server.sendStackList();
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // start container
+        agentSocket.on("startContainer", async (stackName : unknown, serviceName : unknown, callback) => {
+            try {
+                checkLogin(socket);
+
+                if (typeof(stackName) !== "string") {
+                    throw new ValidationError("Stack name must be a string");
+                }
+                if (typeof(serviceName) !== "string") {
+                    throw new ValidationError("Service name must be a string");
+                }
+
+                const stack = await Container.getContainerByStack(server, stackName, serviceName);
+                await stack.start(socket);
+                callbackResult({
+                    ok: true,
+                    msg: "Started"
+                }, callback);
+                server.sendStackList();
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // stop container
+        agentSocket.on("stopContainer", async (stackName : unknown, serviceName : unknown, callback) => {
+            try {
+                checkLogin(socket);
+
+                if (typeof(stackName) !== "string") {
+                    throw new ValidationError("Stack name must be a string");
+                }
+                if (typeof(serviceName) !== "string") {
+                    throw new ValidationError("Service name must be a string");
+                }
+
+                const stack = await Container.getContainerByStack(server, stackName, serviceName);
+                await stack.stop(socket);
+                callbackResult({
+                    ok: true,
+                    msg: "Stopped"
+                }, callback);
+                server.sendStackList();
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // kill container
+        agentSocket.on("killContainer", async (stackName : unknown, serviceName : unknown, callback) => {
+            try {
+                checkLogin(socket);
+
+                if (typeof(stackName) !== "string") {
+                    throw new ValidationError("Stack name must be a string");
+                }
+                if (typeof(serviceName) !== "string") {
+                    throw new ValidationError("Service name must be a string");
+                }
+
+                const stack = await Container.getContainerByStack(server, stackName, serviceName);
+                await stack.kill(socket);
+                callbackResult({
+                    ok: true,
+                    msg: "Killed"
+                }, callback);
+                server.sendStackList();
             } catch (e) {
                 callbackError(e, callback);
             }
