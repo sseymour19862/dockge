@@ -208,6 +208,10 @@ export function getCryptoRandomInt(min: number, max: number):number {
     }
 }
 
+export function getStatsTerminalName(endpoint : string, stack : string) {
+    return "stats-" + endpoint + "-" + stack;
+}
+
 export function getComposeTerminalName(endpoint : string, stack : string) {
     return "compose-" + endpoint + "-" + stack;
 }
