@@ -16,7 +16,7 @@
             </div>
         </div>
         <div v-if="!isEditMode" class="function">
-            <button v-if="status === 'running'" class="btn btn-normal" @click="pause()">
+            <button v-if="status !== 'paused' && status !== 'exited'" class="btn btn-normal" @click="pause()">
                 <font-awesome-icon class="me-1" icon="pause" />
                 {{ $t('pauseContainer') }}
             </button>
@@ -32,15 +32,15 @@
                 <font-awesome-icon class="me-1" icon="stop" />
                 {{ $t('stopContainer') }}
             </button>
-            <button class="btn btn-normal" @click="kill()">
+            <button v-if="status !== 'exited'" class="btn btn-normal" @click="kill()">
                 <font-awesome-icon class="me-1" icon="ban" />
                 {{ $t('killContainer') }}
             </button>
-            <button class="btn btn-normal" @click="restart()">
+            <button v-if="status !== 'exited'" class="btn btn-normal" @click="restart()">
                 <font-awesome-icon class="me-1" icon="rotate" />
                 {{ $t('restartContainer') }}
             </button>
-            <router-link class="btn btn-normal" :to="terminalRouteLink">
+            <router-link v-if="status !== 'exited'" class="btn btn-normal" :to="terminalRouteLink">
                 <font-awesome-icon class="me-1" icon="terminal" />
                 {{ $t('bashContainer') }}
             </router-link>
