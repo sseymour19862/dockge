@@ -248,6 +248,10 @@ export class Terminal {
     public static getTerminalCount() {
         return Terminal.terminalMap.size;
     }
+
+    public static getTerminalNames() {
+        return [ ...Terminal.terminalMap.keys() ].join(", ");
+    }
 }
 
 /**
