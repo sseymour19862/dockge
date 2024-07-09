@@ -123,12 +123,24 @@
 
                     <div ref="containerList">
                         <Container
-                            v-for="(service, name) in jsonConfig.services"
+                            v-for="(service, name) in services"
                             :key="name"
                             :name="name"
                             :is-edit-mode="isEditMode"
-                            :first="name === Object.keys(jsonConfig.services)[0]"
-                            :status="serviceStatusList[name]"
+                            :first="service.first"
+                            :status="service.status"
+                            :cpuUsagePercent="service.cpuUsagePercent"
+                            :memUsage="service.memUsage"
+                            :memUsageUnit="service.memUsageUnit"
+                            :memUsagePercent="service.memUsagePercent"
+                            :blockIn="service.blockIn"
+                            :blockInUnit="service.blockInUnit"
+                            :blockOut="service.blockOut"
+                            :blockOutUnit="service.blockOutUnit"
+                            :netIn="service.netIn"
+                            :netInUnit="service.netInUnit"
+                            :netOut="service.netOut"
+                            :netOutUnit="service.netOutUnit"
                         />
                     </div>
 
@@ -251,6 +263,7 @@ import {
     copyYAMLComments, envsubstYAML,
     getCombinedTerminalName,
     getComposeTerminalName,
+    getStatsTerminalName,
     PROGRESS_TERMINAL_ROWS,
     RUNNING
 } from "../../../common/util-common";
@@ -267,6 +280,8 @@ services:
       - "8080:80"
 `;
 const envDefault = "# VARIABLE=value #comment";
+const clearAnsiRegex = /\x1b\[2J\x1b\[H/;
+const usageRegex = /^([\d.]+)([A-Za-z%]+$)/;
 
 let yamlErrorTimeout = null;
 
@@ -284,6 +299,7 @@ export default {
         PrismEditor,
         BModal,
     },
+    statsString: "",
     beforeRouteUpdate(to, from, next) {
         this.exitConfirm(next);
     },
@@ -305,7 +321,7 @@ export default {
             stack: {
 
             },
-            serviceStatusList: {},
+            services: {},
             isEditMode: false,
             submitted: false,
             showDeleteDialog: false,
@@ -471,6 +487,7 @@ export default {
             };
 
             this.yamlCodeChange();
+            this.startContainerStats();
 
         } else {
             this.stack.name = this.$route.params.stackName;
@@ -493,12 +510,119 @@ export default {
         requestServiceStatus() {
             this.$root.emitAgent(this.endpoint, "serviceStatusList", this.stack.name, (res) => {
                 if (res.ok) {
-                    this.serviceStatusList = res.serviceStatusList;
+                    const keys = Object.keys(res.serviceStatusList);
+                    for (const key of keys) {
+                        if (!this.services[key]) {
+                            continue;
+                        }
+
+                        this.services[key].status = res.serviceStatusList[key];
+                    }
                 }
                 if (!this.stopServiceStatusTimeout) {
                     this.startServiceStatusTimeout();
                 }
             });
+        },
+
+        startContainerStats() {
+            const services = Object.keys(this.jsonConfig.services);
+            this.$root.emitAgent(this.endpoint, "stats", this.stack.name, services, (res) => {
+                if (!res.ok) {
+                    this.$root.toastRes(res);
+                } else {
+                    const idsToServices = res.idsToServices;
+                    if (!idsToServices) {
+                        return;
+                    }
+                    const ids = Object.keys(idsToServices);
+                    if (ids.length <= 0) {
+                        return;
+                    }
+
+                    const stackStatsTerminal = getStatsTerminalName(this.endpoint, this.stack.name);
+                    this.$root.bindTerminalRaw(this.endpoint, stackStatsTerminal, (data) => this.readStats(idsToServices, data));
+                }
+            });
+        },
+
+        parseStat(stat) {
+            const matches = usageRegex.exec(stat);
+            if (!matches || matches.length !== 3) {
+                return ("0", "B");
+            }
+
+            return [ matches[1], matches[2] ];
+        },
+
+        parseFloatStat(stat) {
+            const matches = usageRegex.exec(stat);
+            if (!matches || matches.length !== 3) {
+                return ("0.00", "B");
+            }
+
+            return [ (+matches[1]).toFixed(2), matches[2] ];
+        },
+
+        readStats(idsToServices, data) {
+            if (typeof data !== "string") {
+                return;
+            }
+            this.statsString += data;
+            const stats = this.statsString.split(clearAnsiRegex);
+            if (stats.length <= 1) {
+                return;
+            }
+            this.statsString = stats[stats.length - 1];
+            const latestStatsString = stats[stats.length - 2];
+            if (!latestStatsString) {
+                return;
+            }
+            const latestStats = latestStatsString
+                .split("\n")
+                .map(x => {
+                    if (!x) {
+                        return null;
+                    }
+
+                    try {
+                        return JSON.parse(x.substring(1, x.length - 2));
+                    } catch {
+                        return null;
+                    }
+                })
+                .filter(x => !!x);
+            for (const stat of latestStats) {
+                if (!idsToServices[stat.Container]) {
+                    continue;
+                }
+
+                const service = idsToServices[stat.Container];
+                if (!this.services[service]) {
+                    continue;
+                }
+
+                const memUsage = this.parseFloatStat(stat.MemUsage.split("/")[0].trim());
+                const blockIO = stat.BlockIO.split("/");
+                const blockIn = this.parseStat(blockIO[0].trim());
+                const blockOut = this.parseStat(blockIO[1].trim());
+                const netIO = stat.NetIO.split("/");
+                const netIn = this.parseStat(netIO[0].trim());
+                const netOut = this.parseStat(netIO[1].trim());
+
+                this.services[service].cpuUsagePercent = this.parseFloatStat(stat.CPUPerc.trim())[0];
+                this.services[service].memUsage = memUsage[0];
+                this.services[service].memUsageUnit = memUsage[1];
+                this.services[service].memUsagePercent = this.parseFloatStat(stat.MemPerc.trim())[0];
+                this.services[service].blockIn = blockIn[0];
+                this.services[service].blockInUnit = blockIn[1];
+                this.services[service].blockOut = blockOut[0];
+                this.services[service].blockOutUnit = blockOut[1];
+                this.services[service].netIn = netIn[0];
+                this.services[service].netInUnit = netIn[1];
+                this.services[service].netOut = netOut[0];
+                this.services[service].netOutUnit = netOut[1];
+            }
         },
 
         exitConfirm(next) {
@@ -523,6 +647,10 @@ export default {
             // Leave Combined Terminal
             console.debug("leaveCombinedTerminal", this.endpoint, this.stack.name);
             this.$root.emitAgent(this.endpoint, "leaveCombinedTerminal", this.stack.name, () => {});
+
+            // Leave Stats
+            console.debug("leaveStats", this.endpoint, this.stack.name);
+            this.$root.emitAgent(this.endpoint, "leaveStats", this.stack.name, () => {});
         },
 
         bindTerminal() {
@@ -537,6 +665,7 @@ export default {
                     this.yamlCodeChange();
                     this.processing = false;
                     this.bindTerminal();
+                    this.startContainerStats();
                 } else {
                     this.$root.toastRes(res);
                 }
@@ -699,6 +828,26 @@ export default {
             return highlight(code, languages.docker_env);
         },
 
+        updateServices() {
+            let currentKeys = [];
+            if (this.services) {
+                currentKeys = Object.keys(this.services);
+            } else {
+                this.services = {};
+            }
+            Object.keys(this.jsonConfig.services).forEach((key, index) => {
+                if (!this.services[key]) {
+                    this.services[key] = {};
+                } else if (currentKeys.length > 0) {
+                    currentKeys.splice(currentKeys.indexOf(key), 1);
+                }
+                this.services[key].first = index === 0;
+            });
+            for (const toDelete of currentKeys) {
+                delete this.services[toDelete];
+            }
+        },
+
         yamlToJSON(yaml) {
             let doc = parseDocument(yaml);
             if (doc.errors.length > 0) {
@@ -733,6 +882,8 @@ export default {
                 let env = dotenv.parse(this.stack.composeENV);
                 let envYAML = envsubstYAML(this.stack.composeYAML, env);
                 this.envsubstJSONConfig = this.yamlToJSON(envYAML).config;
+
+                this.updateServices();
 
                 clearTimeout(yamlErrorTimeout);
                 this.yamlError = "";

@@ -5,9 +5,11 @@ import jwtDecode from "jwt-decode";
 import { Terminal } from "@xterm/xterm";
 import { AgentSocket } from "../../../common/agent-socket";
 
+export type TerminalCallback = (data: string | Uint8Array) => void;
+
 let socket : Socket;
 
-let terminalMap : Map<string, Terminal> = new Map();
+let terminalMap : Map<string, TerminalCallback> = new Map();
 
 export default defineComponent({
     data() {
@@ -241,7 +243,7 @@ export default defineComponent({
                     //console.error("Terminal not found: " + terminalName);
                     return;
                 }
-                terminal.write(data);
+                terminal(data);
             });
 
             agentSocket.on("stackList", (res) => {
@@ -396,16 +398,20 @@ export default defineComponent({
 
         },
 
-        bindTerminal(endpoint : string, terminalName : string, terminal : Terminal) {
-            // Load terminal, get terminal screen
+        bindTerminalRaw(endpoint : string, terminalName : string, write : TerminalCallback) {
             this.emitAgent(endpoint, "terminalJoin", terminalName, (res) => {
                 if (res.ok) {
-                    terminal.write(res.buffer);
-                    terminalMap.set(terminalName, terminal);
+                    write(res.buffer);
+                    terminalMap.set(terminalName, write);
                 } else {
                     this.toastRes(res);
                 }
             });
+        },
+
+        bindTerminal(endpoint : string, terminalName : string, terminal : Terminal) {
+            // Load terminal, get terminal screen
+            this.bindTerminalRaw(endpoint, terminalName, (data) => terminal.write(data));
         },
 
         unbindTerminal(terminalName : string) {
