@@ -1,7 +1,7 @@
 <template>
     <div class="shadow-box mb-3 container">
         <div class="row">
-            <div class="col-7">
+            <div class="info">
                 <h4>{{ name }}</h4>
                 <div class="image mb-2">
                     <span class="me-1">{{ imageName }}:</span><span class="tag">{{ imageTag }}</span>
@@ -12,6 +12,24 @@
                     <a v-for="port in envsubstService.ports" :key="port" :href="parsePort(port).url" target="_blank">
                         <span class="badge me-1 bg-secondary">{{ parsePort(port).display }}</span>
                     </a>
+                </div>
+            </div>
+            <div v-if="status !== 'exited' && !isEditMode" class="stats">
+                <div class="stat">
+                    <span class="label">CPU</span>
+                    <span class="usage">{{ cpuUsagePercent }}</span><span class="unit">%</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Mem</span>
+                    <span class="usage">{{ memUsage }}</span><span class="unit">{{ memUsageUnit }}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Net In</span>
+                    <span class="usage">{{ netIn }}</span><span class="unit">{{ netInUnit }}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Net Out</span>
+                    <span class="usage">{{ netOut }}</span><span class="unit">{{ netOutUnit }}</span>
                 </div>
             </div>
         </div>
@@ -180,6 +198,54 @@ export default defineComponent({
         status: {
             type: String,
             default: "N/A",
+        },
+        cpuUsagePercent: {
+            type: String,
+            default: "0"
+        },
+        memUsage: {
+            type: String,
+            default: "0"
+        },
+        memUsageUnit: {
+            type: String,
+            default: "B"
+        },
+        memUsagePercent: {
+            type: String,
+            default: "0"
+        },
+        blockIn: {
+            type: String,
+            default: "0"
+        },
+        blockInUnit: {
+            type: String,
+            default: "B"
+        },
+        blockOut: {
+            type: String,
+            default: "0"
+        },
+        blockOutUnit: {
+            type: String,
+            default: "B"
+        },
+        netIn: {
+            type: String,
+            default: "0"
+        },
+        netInUnit: {
+            type: String,
+            default: "B"
+        },
+        netOut: {
+            type: String,
+            default: "0"
+        },
+        netOutUnit: {
+            type: String,
+            default: "B"
         }
     },
     emits: [
@@ -360,6 +426,12 @@ export default defineComponent({
 <style scoped lang="scss">
 @import "../styles/vars";
 
+// Slightly hacky way to get the padding to work correctly.
+$bs-padding-x: "var(--bs-gutter-x) * 0.5";
+$container-stat-width: 80px;
+$container-stats-width: (2 * $container-stat-width) + 10px;
+$container-stats-width-calc: $container-stats-width + " + (" + #{$bs-padding-x} + ")";
+
 .container {
     padding: 0;
     overflow: hidden;
@@ -369,6 +441,67 @@ export default defineComponent({
         color: #6c757d;
         .tag {
             color: #33383b;
+        }
+    }
+
+    .info,
+    .stats {
+        flex: 0 0 auto;
+    }
+
+    .info {
+        width: calc(100% - (#{$container-stats-width-calc}));
+    }
+
+    .stats {
+        display: flex;
+        padding-left: 0;
+        width: calc(#{$container-stats-width-calc});
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        > .stat {
+            display: flex;
+            position: relative;
+            width: $container-stat-width;
+            margin-bottom: 10px;
+            padding: 10px 0;
+            border-radius: 10px;
+            border: 1px solid #b1b8c0;
+            flex-direction: row;
+            text-align: center;
+            justify-content: center;
+
+            &:nth-child(odd) {
+                margin-right: auto;
+            }
+
+            &:nth-last-child(-n + 2) {
+                margin-bottom: 0;
+            }
+
+            > .label {
+                position: absolute;
+                top: -0.5em;
+                left: 9px;
+                line-height: 1em;
+                padding: 0 5px;
+                background-color: #0d1116;
+                text-align: left;
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
+
+            > .usage {
+                font-size: 1rem;
+            }
+
+            > .unit {
+                font-size: 0.8rem;
+                align-self: end;
+                margin-bottom: 1px;
+                margin-left: 2px;
+            }
         }
     }
 

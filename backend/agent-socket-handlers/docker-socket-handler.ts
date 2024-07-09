@@ -4,6 +4,8 @@ import { callbackError, callbackResult, checkLogin, DockgeSocket, ValidationErro
 import { Stack } from "../stack";
 import { Container } from "../container";
 import { AgentSocket } from "../../common/agent-socket";
+import { Terminal } from "../terminal";
+import { getStatsTerminalName } from "../../common/util-common";
 
 export class DockerSocketHandler extends AgentSocketHandler {
     create(socket : DockgeSocket, server : DockgeServer, agentSocket : AgentSocket) {
@@ -383,6 +385,71 @@ export class DockerSocketHandler extends AgentSocketHandler {
                     msg: "Killed"
                 }, callback);
                 server.sendStackList();
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // container stats
+        agentSocket.on("stats", async (stackName : unknown, serviceNames : unknown, callback) => {
+            try {
+                checkLogin(socket);
+
+                if (typeof(stackName) !== "string") {
+                    throw new ValidationError("Stack name must be a string");
+                }
+                if (!Array.isArray(serviceNames)) {
+                    throw new ValidationError("Service names must be an array");
+                }
+                const idsToServices: Map<string, string> = new Map();
+                let path: string | null = null;
+                for (const serviceName of serviceNames) {
+                    if (typeof(serviceName) !== "string") {
+                        throw new ValidationError("Service names must be a string");
+                    }
+                    try {
+                        const container = await Container.getContainerByStack(server, stackName, serviceName);
+                        path = container.stack.path;
+                        idsToServices.set(container.id, serviceName);
+                    } catch (e) { }
+                }
+
+                if (idsToServices.size <= 0 || path === null) {
+                    throw new ValidationError("Must provide some service names");
+                }
+
+                const ids: string[] = Array.from(idsToServices.keys());
+                const terminal = Terminal.getOrCreateTerminal(server, getStatsTerminalName(socket.endpoint, stackName), "docker", [ "stats", ...ids, "--format", "\"{{ json . }}\"" ], path);
+                terminal.enableKeepAlive = true;
+                terminal.join(socket);
+                terminal.start();
+
+                callbackResult({
+                    ok: true,
+                    idsToServices: Object.fromEntries(idsToServices)
+                }, callback);
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // leave container stats
+        agentSocket.on("leaveStats", async (stackName : unknown, callback) => {
+            try {
+                checkLogin(socket);
+
+                if (typeof(stackName) !== "string") {
+                    throw new ValidationError("Stack name must be a string");
+                }
+
+                const terminal = Terminal.getTerminal(getStatsTerminalName(socket.endpoint, stackName));
+                if (terminal) {
+                    terminal.leave(socket);
+                }
+
+                callbackResult({
+                    ok: true
+                }, callback);
             } catch (e) {
                 callbackError(e, callback);
             }
