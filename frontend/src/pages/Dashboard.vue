@@ -36,7 +36,4 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.container-fluid {
-    width: 98%;
-}
 </style>

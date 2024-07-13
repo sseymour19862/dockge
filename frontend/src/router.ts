@@ -54,35 +54,35 @@ const routes = [
                             },
                         ]
                     },
+                ]
+            },
+            {
+                path: "/console",
+                component: Console,
+            },
+            {
+                path: "/console/:endpoint",
+                component: Console,
+            },
+            {
+                path: "/settings",
+                component: Settings,
+                children: [
                     {
-                        path: "/console",
-                        component: Console,
+                        path: "general",
+                        component: General,
                     },
                     {
-                        path: "/console/:endpoint",
-                        component: Console,
+                        path: "appearance",
+                        component: Appearance,
                     },
                     {
-                        path: "/settings",
-                        component: Settings,
-                        children: [
-                            {
-                                path: "general",
-                                component: General,
-                            },
-                            {
-                                path: "appearance",
-                                component: Appearance,
-                            },
-                            {
-                                path: "security",
-                                component: Security,
-                            },
-                            {
-                                path: "about",
-                                component: About,
-                            },
-                        ]
+                        path: "security",
+                        component: Security,
+                    },
+                    {
+                        path: "about",
+                        component: About,
                     },
                 ]
             },

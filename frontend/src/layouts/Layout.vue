@@ -201,6 +201,10 @@ export default {
 
 main {
     min-height: calc(100vh - 160px);
+
+    > .container-fluid {
+        width: 98%;
+    }
 }
 
 .title {

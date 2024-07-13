@@ -1,6 +1,6 @@
 <template>
     <transition name="slide-fade" appear>
-        <div>
+        <div class="container-fluid">
             <h1 class="mb-3">Console</h1>
 
             <div>

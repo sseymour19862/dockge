@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container-fluid">
         <h1 v-show="show" class="mb-3">
             {{ $t("Settings") }}
         </h1>
