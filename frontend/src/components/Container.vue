@@ -16,19 +16,19 @@
             </div>
             <div v-if="status !== 'exited' && !isEditMode" class="stats">
                 <div class="stat">
-                    <span class="label">CPU</span>
+                    <span class="label">{{ $t('containerCpuUsage') }}</span>
                     <span class="usage">{{ cpuUsagePercent }}</span><span class="unit">%</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Mem</span>
+                    <span class="label">{{ $t('containerMemUsage') }}</span>
                     <span class="usage">{{ memUsage }}</span><span class="unit">{{ memUsageUnit }}</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Net In</span>
+                    <span class="label">{{ $t('containerNetworkInput') }}</span>
                     <span class="usage">{{ netIn }}</span><span class="unit">{{ netInUnit }}</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Net Out</span>
+                    <span class="label">{{ $t('containerNetworkOutput') }}</span>
                     <span class="usage">{{ netOut }}</span><span class="unit">{{ netOutUnit }}</span>
                 </div>
             </div>
