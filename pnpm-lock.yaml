@@ -175,9 +175,6 @@ devDependencies:
   eslint-plugin-vue:
     specifier: ~9.17.0
     version: 9.17.0(eslint@8.50.0)
-  prismjs:
-    specifier: ~1.29.0
-    version: 1.29.0
   sass:
     specifier: ~1.68.0
     version: 1.68.0
@@ -202,9 +199,6 @@ devDependencies:
   vue-i18n:
     specifier: ~9.5.0
     version: 9.5.0(vue@3.3.13)
-  vue-prism-editor:
-    specifier: 2.0.0-alpha.2
-    version: 2.0.0-alpha.2(vue@3.3.13)
   vue-qrcode:
     specifier: ~2.2.0
     version: 2.2.0(qrcode@1.5.3)(vue@3.3.13)
@@ -4384,11 +4378,6 @@ packages:
     hasBin: true
     dev: false
 
-  /prismjs@1.29.0:
-    resolution: {integrity: sha512-Kx/1w86q/epKcmte75LNrEoT+lX8pBpavuAbvJWRXar7Hz8jrtF+e3vY751p0R8H9HdArwaCTNDDzHg/ScJK1Q==}
-    engines: {node: '>=6'}
-    dev: true
-
   /promise-inflight@1.0.1:
     resolution: {integrity: sha512-6zWPyEOFaQBJYcGMHBKTKJ3u6TBsnMFOIZSa6ce1e/ZrrsOlnHRHbabMjLiBYKp+n44X9eUI6VUPaukCXHuG4g==}
     requiresBuild: true
@@ -5479,15 +5468,6 @@ packages:
       '@intlify/core-base': 9.5.0
       '@intlify/shared': 9.5.0
       '@vue/devtools-api': 6.5.1
-      vue: 3.3.13(typescript@5.2.2)
-    dev: true
-
-  /vue-prism-editor@2.0.0-alpha.2(vue@3.3.13):
-    resolution: {integrity: sha512-Gu42ba9nosrE+gJpnAEuEkDMqG9zSUysIR8SdXUw8MQKDjBnnNR9lHC18uOr/ICz7yrA/5c7jHJr9lpElODC7w==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      vue: ^3.0.0
-    dependencies:
       vue: 3.3.13(typescript@5.2.2)
     dev: true
 

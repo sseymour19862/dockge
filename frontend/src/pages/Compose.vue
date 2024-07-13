@@ -243,12 +243,8 @@
 </template>
 
 <script>
-import { highlight, languages } from "prismjs/components/prism-core";
-import "prismjs/components/prism-yaml";
 import { parseDocument, Document } from "yaml";
 
-import "prismjs/themes/prism-tomorrow.css";
-import "vue-prism-editor/dist/prismeditor.min.css";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import {
     COMBINED_TERMINAL_COLS,
@@ -277,13 +273,7 @@ const clearAnsiRegex = /\x1b\[2J\x1b\[H/;
 const usageRegex = /^([\d.]+)([A-Za-z%]+$)/;
 
 let yamlErrorTimeout = null;
-
 let serviceStatusTimeout = null;
-let prismjsSymbolDefinition = {
-    "symbol": {
-        pattern: /(?<!\$)\$(\{[^{}]*\}|\w+)/,
-    }
-};
 
 export default {
     components: {
@@ -820,46 +810,6 @@ export default {
         discardStack() {
             this.loadStack();
             this.disableEditMode();
-        },
-
-        highlighterYAML(code) {
-            if (!languages.yaml_with_symbols) {
-                languages.yaml_with_symbols = languages.insertBefore("yaml", "punctuation", {
-                    "symbol": prismjsSymbolDefinition["symbol"]
-                });
-            }
-            return highlight(code, languages.yaml_with_symbols);
-        },
-
-        highlighterENV(code) {
-            if (!languages.docker_env) {
-                languages.docker_env = {
-                    "comment": {
-                        pattern: /(^#| #).*$/m,
-                        greedy: true
-                    },
-                    "keyword": {
-                        pattern: /^\w*(?=[:=])/m,
-                        greedy: true
-                    },
-                    "value": {
-                        pattern: /(?<=[:=]).*?((?= #)|$)/m,
-                        greedy: true,
-                        inside: {
-                            "string": [
-                                {
-                                    pattern: /^ *'.*?(?<!\\)'/m,
-                                },
-                                {
-                                    pattern: /^ *".*?(?<!\\)"|^.*$/m,
-                                    inside: prismjsSymbolDefinition
-                                },
-                            ],
-                        },
-                    },
-                };
-            }
-            return highlight(code, languages.docker_env);
         },
 
         updateServices() {
