@@ -445,6 +445,7 @@ export class DockerSocketHandler extends AgentSocketHandler {
                 const terminal = Terminal.getTerminal(getStatsTerminalName(socket.endpoint, stackName));
                 if (terminal) {
                     terminal.leave(socket);
+                    terminal.close();
                 }
 
                 callbackResult({

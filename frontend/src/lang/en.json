@@ -119,5 +119,9 @@
     "stopContainer": "Stop",
     "killContainer": "Kill",
     "restartContainer": "Restart",
-    "bashContainer": "Bash"
+    "bashContainer": "Bash",
+    "containerCpuUsage": "CPU",
+    "containerMemUsage": "Mem",
+    "containerNetworkInput": "Net In",
+    "containerNetworkOutput": "Net Out"
 }
