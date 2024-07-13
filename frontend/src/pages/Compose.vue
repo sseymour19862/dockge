@@ -448,6 +448,8 @@ export default {
                     this.stack.composeYAML = doc.toString();
                     this.yamlDoc = doc;
                 }
+
+                this.updateServices();
             },
             deep: true,
         },
@@ -546,6 +548,12 @@ export default {
             });
         },
 
+        stopContainerStats() {
+            const stackStatsTerminal = getStatsTerminalName(this.endpoint, this.stack.name);
+            this.$root.unbindTerminal(stackStatsTerminal);
+            this.$root.emitAgent(this.endpoint, "leaveStats", this.stack.name, () => {});
+        },
+
         parseStat(stat) {
             const matches = usageRegex.exec(stat);
             if (!matches || matches.length !== 3) {
@@ -593,7 +601,7 @@ export default {
                 })
                 .filter(x => !!x);
             for (const stat of latestStats) {
-                if (!idsToServices[stat.Container]) {
+                if (!idsToServices[stat.Container] || stat.PIDs === "--") {
                     continue;
                 }
 
@@ -650,7 +658,7 @@ export default {
 
             // Leave Stats
             console.debug("leaveStats", this.endpoint, this.stack.name);
-            this.$root.emitAgent(this.endpoint, "leaveStats", this.stack.name, () => {});
+            this.stopContainerStats();
         },
 
         bindTerminal() {
@@ -703,6 +711,8 @@ export default {
             }
 
             this.bindTerminal();
+            this.stopContainerStats();
+            this.startContainerStats();
 
             this.$root.emitAgent(this.stack.endpoint, "deployStack", this.stack.name, this.stack.composeYAML, this.stack.composeENV, this.isAdd, (res) => {
                 this.processing = false;
@@ -882,8 +892,6 @@ export default {
                 let env = dotenv.parse(this.stack.composeENV);
                 let envYAML = envsubstYAML(this.stack.composeYAML, env);
                 this.envsubstJSONConfig = this.yamlToJSON(envYAML).config;
-
-                this.updateServices();
 
                 clearTimeout(yamlErrorTimeout);
                 this.yamlError = "";
