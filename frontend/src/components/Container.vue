@@ -16,7 +16,7 @@
             </div>
         </div>
         <div v-if="!isEditMode" class="function">
-            <button v-if="status !== 'paused' && status !== 'exited'" class="btn btn-normal" @click="pause()">
+            <button v-if="status !== 'paused' && status !== 'exited' && status !== 'N/A'" class="btn btn-normal" @click="pause()">
                 <font-awesome-icon class="me-1" icon="pause" />
                 {{ $t('pauseContainer') }}
             </button>
@@ -24,23 +24,23 @@
                 <font-awesome-icon class="me-1" icon="play" />
                 {{ $t('unpauseContainer') }}
             </button>
-            <button v-if="status === 'exited'" class="btn btn-normal" @click="start()">
+            <button v-if="status === 'exited' || status === 'N/A'" class="btn btn-normal" @click="start()">
                 <font-awesome-icon class="me-1" icon="play" />
                 {{ $t('startContainer') }}
             </button>
-            <button v-if="status !== 'exited'" class="btn btn-normal" @click="stop()">
+            <button v-if="status !== 'exited' && status !== 'N/A'" class="btn btn-normal" @click="stop()">
                 <font-awesome-icon class="me-1" icon="stop" />
                 {{ $t('stopContainer') }}
             </button>
-            <button v-if="status !== 'exited'" class="btn btn-normal" @click="kill()">
+            <button v-if="status !== 'exited' && status !== 'N/A'" class="btn btn-normal" @click="kill()">
                 <font-awesome-icon class="me-1" icon="ban" />
                 {{ $t('killContainer') }}
             </button>
-            <button v-if="status !== 'exited'" class="btn btn-normal" @click="restart()">
+            <button v-if="status !== 'exited' && status !== 'N/A'" class="btn btn-normal" @click="restart()">
                 <font-awesome-icon class="me-1" icon="rotate" />
                 {{ $t('restartContainer') }}
             </button>
-            <router-link v-if="status !== 'exited'" class="btn btn-normal" :to="terminalRouteLink">
+            <router-link v-if="status !== 'exited' && status !== 'N/A'" class="btn btn-normal" :to="terminalRouteLink">
                 <font-awesome-icon class="me-1" icon="terminal" />
                 {{ $t('bashContainer') }}
             </router-link>
