@@ -323,7 +323,8 @@ export default {
                 scrollBeyondLastLine: false,
                 hideCursorInOverviewRuler: true,
                 renderLineHighlight: "none",
-                readOnly: true
+                readOnly: true,
+                wordWrap: "on"
             },
             editorWindowResizeHandlers: []
         };
