@@ -27,6 +27,7 @@
         "reset-password": "tsx ./extra/reset-password.ts"
     },
     "dependencies": {
+        "@guolao/vue-monaco-editor": "^1.5.1",
         "@homebridge/node-pty-prebuilt-multiarch": "~0.11.12",
         "@inventage/envsubst": "^0.16.0",
         "@louislam/sqlite3": "~15.1.6",
@@ -45,6 +46,8 @@
         "jwt-decode": "~3.1.2",
         "knex": "~2.5.1",
         "limiter-es6-compat": "~2.1.2",
+        "monaco-editor": "0.50.0",
+        "monaco-yaml": "^5.2.1",
         "mysql2": "~3.6.5",
         "promisify-child-process": "~4.1.2",
         "redbean-node": "~0.3.3",
@@ -82,7 +85,6 @@
         "eslint": "~8.50.0",
         "eslint-plugin-jsdoc": "~46.8.2",
         "eslint-plugin-vue": "~9.17.0",
-        "prismjs": "~1.29.0",
         "sass": "~1.68.0",
         "typescript": "~5.2.2",
         "unplugin-vue-components": "~0.25.2",
@@ -91,7 +93,6 @@
         "vue": "~3.3.13",
         "vue-eslint-parser": "~9.3.2",
         "vue-i18n": "~9.5.0",
-        "vue-prism-editor": "2.0.0-alpha.2",
         "vue-qrcode": "~2.2.0",
         "vue-router": "~4.2.5",
         "vue-toastification": "2.0.0-rc.5",

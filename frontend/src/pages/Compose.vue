@@ -179,16 +179,14 @@
 
                     <!-- YAML editor -->
                     <div class="shadow-box mb-3 editor-box" :class="{'edit-mode' : isEditMode}">
-                        <prism-editor
-                            ref="editor"
-                            v-model="stack.composeYAML"
-                            class="yaml-editor"
-                            :highlight="highlighterYAML"
-                            line-numbers :readonly="!isEditMode"
-                            @input="yamlCodeChange"
-                            @focus="editorFocus = true"
-                            @blur="editorFocus = false"
-                        ></prism-editor>
+                        <vue-monaco-editor
+                            v-model:value="stack.composeYAML"
+                            language="yaml"
+                            :theme="editorTheme"
+                            :options="editorOptions"
+                            @mount="handleEditorMount"
+                            @change="yamlCodeChange"
+                        />
                     </div>
                     <div v-if="isEditMode" class="mb-3">
                         {{ yamlError }}
@@ -198,15 +196,13 @@
                     <div v-if="isEditMode">
                         <h4 class="mb-3">.env</h4>
                         <div class="shadow-box mb-3 editor-box" :class="{'edit-mode' : isEditMode}">
-                            <prism-editor
-                                ref="editor"
-                                v-model="stack.composeENV"
-                                class="env-editor"
-                                :highlight="highlighterENV"
-                                line-numbers :readonly="!isEditMode"
-                                @focus="editorFocus = true"
-                                @blur="editorFocus = false"
-                            ></prism-editor>
+                            <vue-monaco-editor
+                                v-model:value="stack.composeENV"
+                                language="ini"
+                                :theme="editorTheme"
+                                :options="editorOptions"
+                                @mount="handleEditorMount"
+                            />
                         </div>
                     </div>
 
@@ -230,8 +226,6 @@
                             <label for="name" class="form-label"> Search Templates</label>
                             <input id="name" v-model="name" type="text" class="form-control" placeholder="Search..." required>
                         </div>
-
-                        <prism-editor v-if="false" v-model="yamlConfig" class="yaml-editor" :highlight="highlighter" line-numbers @input="yamlCodeChange"></prism-editor>
                     </div>-->
                 </div>
             </div>
@@ -249,13 +243,8 @@
 </template>
 
 <script>
-import { highlight, languages } from "prismjs/components/prism-core";
-import { PrismEditor } from "vue-prism-editor";
-import "prismjs/components/prism-yaml";
 import { parseDocument, Document } from "yaml";
 
-import "prismjs/themes/prism-tomorrow.css";
-import "vue-prism-editor/dist/prismeditor.min.css";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import {
     COMBINED_TERMINAL_COLS,
@@ -284,19 +273,12 @@ const clearAnsiRegex = /\x1b\[2J\x1b\[H/;
 const usageRegex = /^([\d.]+)([A-Za-z%]+$)/;
 
 let yamlErrorTimeout = null;
-
 let serviceStatusTimeout = null;
-let prismjsSymbolDefinition = {
-    "symbol": {
-        pattern: /(?<!\$)\$(\{[^{}]*\}|\w+)/,
-    }
-};
 
 export default {
     components: {
         NetworkInput,
         FontAwesomeIcon,
-        PrismEditor,
         BModal,
     },
     statsString: "",
@@ -307,6 +289,7 @@ export default {
         this.exitConfirm(next);
     },
     yamlDoc: null,  // For keeping the yaml comments
+    editorWindowResizeHandlers: null,
     data() {
         return {
             editorFocus: false,
@@ -327,6 +310,22 @@ export default {
             showDeleteDialog: false,
             newContainerName: "",
             stopServiceStatusTimeout: false,
+            editorTheme: "dockge",
+            editorOptions: {
+                automaticLayout: false,
+                formatOnPaste: true,
+                fontSize: "14px",
+                fontFamily: "'JetBrains Mono', monospace",
+                lineNumbersMinChars: 2,
+                minimap: {
+                    enabled: false
+                },
+                scrollBeyondLastLine: false,
+                hideCursorInOverviewRuler: true,
+                renderLineHighlight: "none",
+                readOnly: true
+            },
+            editorWindowResizeHandlers: []
         };
     },
     computed: {
@@ -459,7 +458,7 @@ export default {
     mounted() {
         if (this.isAdd) {
             this.processing = false;
-            this.isEditMode = true;
+            this.enableEditMode();
 
             let composeYAML;
             let composeENV;
@@ -497,9 +496,34 @@ export default {
         this.requestServiceStatus();
     },
     unmounted() {
+        if (this.editorWindowResizeHandlers.length <= 0) {
+            return;
+        }
 
+        for (const editorWindowResizeHandler of this.editorWindowResizeHandlers) {
+            window.removeEventListener("resize", editorWindowResizeHandler);
+        }
     },
     methods: {
+        handleEditorMount(editor) {
+            editor.onDidContentSizeChange(() => this.updateEditorHeight(editor._domElement, editor));
+            editor.onDidFocusEditorWidget(() => this.editorFocus = true);
+            editor.onDidBlurEditorWidget(() => this.editorFocus = false);
+
+            const windowResizeHandler = this.updateEditorHeight.bind(this, editor._domElement, editor);
+            this.editorWindowResizeHandlers.push(windowResizeHandler);
+            window.addEventListener("resize", windowResizeHandler);
+        },
+
+        updateEditorHeight(container, editor) {
+            const contentHeight = editor.getContentHeight();
+            container.style.height = `${editor.getContentHeight()}px`;
+            editor.layout({
+                width: container.clientWidth,
+                height: contentHeight
+            });
+        },
+
         startServiceStatusTimeout() {
             clearTimeout(serviceStatusTimeout);
             serviceStatusTimeout = setTimeout(async () => {
@@ -709,7 +733,7 @@ export default {
                 this.$root.toastRes(res);
 
                 if (res.ok) {
-                    this.isEditMode = false;
+                    this.disableEditMode();
                     this.$router.push(this.url);
                 }
             });
@@ -723,7 +747,7 @@ export default {
                 this.$root.toastRes(res);
 
                 if (res.ok) {
-                    this.isEditMode = false;
+                    this.disableEditMode();
                     this.$router.push(this.url);
                 }
             });
@@ -785,47 +809,7 @@ export default {
 
         discardStack() {
             this.loadStack();
-            this.isEditMode = false;
-        },
-
-        highlighterYAML(code) {
-            if (!languages.yaml_with_symbols) {
-                languages.yaml_with_symbols = languages.insertBefore("yaml", "punctuation", {
-                    "symbol": prismjsSymbolDefinition["symbol"]
-                });
-            }
-            return highlight(code, languages.yaml_with_symbols);
-        },
-
-        highlighterENV(code) {
-            if (!languages.docker_env) {
-                languages.docker_env = {
-                    "comment": {
-                        pattern: /(^#| #).*$/m,
-                        greedy: true
-                    },
-                    "keyword": {
-                        pattern: /^\w*(?=[:=])/m,
-                        greedy: true
-                    },
-                    "value": {
-                        pattern: /(?<=[:=]).*?((?= #)|$)/m,
-                        greedy: true,
-                        inside: {
-                            "string": [
-                                {
-                                    pattern: /^ *'.*?(?<!\\)'/m,
-                                },
-                                {
-                                    pattern: /^ *".*?(?<!\\)"|^.*$/m,
-                                    inside: prismjsSymbolDefinition
-                                },
-                            ],
-                        },
-                    },
-                };
-            }
-            return highlight(code, languages.docker_env);
+            this.disableEditMode();
         },
 
         updateServices() {
@@ -892,7 +876,6 @@ export default {
 
                 if (this.yamlError) {
                     this.yamlError = e.message;
-
                 } else {
                     yamlErrorTimeout = setTimeout(() => {
                         this.yamlError = e.message;
@@ -901,8 +884,18 @@ export default {
             }
         },
 
+        setEditMode(value) {
+            this.isEditMode = value;
+            this.editorOptions.readOnly = !value;
+            this.editorTheme = value ? "dockge-editing" : "dockge";
+        },
+
         enableEditMode() {
-            this.isEditMode = true;
+            this.setEditMode(true);
+        },
+
+        disableEditMode() {
+            this.setEditMode(false);
         },
 
         checkYAML() {
@@ -949,8 +942,6 @@ export default {
 }
 
 .editor-box {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
     &.edit-mode {
         background-color: #2c2f38 !important;
     }

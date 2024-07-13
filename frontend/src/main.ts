@@ -11,6 +11,7 @@ import { i18n } from "./i18n";
 import "bootstrap";
 import Toast, { POSITION, useToast } from "vue-toastification";
 import "@xterm/xterm/lib/xterm.js";
+import { initMonacoEditor } from "./monaco-editor";
 
 // CSS
 import "@fontsource/jetbrains-mono";
@@ -34,6 +35,9 @@ app.use(Toast, {
 });
 app.use(router);
 app.use(i18n);
+
+initMonacoEditor(app);
+
 app.component("FontAwesomeIcon", FontAwesomeIcon);
 app.mount("#app");
 
