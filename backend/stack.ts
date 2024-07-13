@@ -12,6 +12,7 @@ import {
     CREATED_STACK,
     EXITED, getCombinedTerminalName,
     getComposeTerminalName, getContainerExecTerminalName,
+    MIXED,
     PROGRESS_TERMINAL_ROWS,
     RUNNING, TERMINAL_ROWS,
     UNKNOWN
@@ -363,11 +364,14 @@ export class Stack {
     static statusConvert(status : string) : number {
         if (status.startsWith("created")) {
             return CREATED_STACK;
-        } else if (status.includes("exited")) {
-            // If one of the service is exited, we consider the stack is exited
+        } else if (status.includes(",")) {
+            // If status include comma, there are multiple service states
+            return MIXED;
+        } else if (status.startsWith("exited")) {
+            // If all of the services are exited, we consider the stack is exited
             return EXITED;
         } else if (status.startsWith("running")) {
-            // If there is no exited services, there should be only running services
+            // If all of the services are running, we consider the stack is running
             return RUNNING;
         } else {
             return UNKNOWN;

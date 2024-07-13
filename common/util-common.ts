@@ -51,6 +51,7 @@ export const CREATED_FILE = 1;
 export const CREATED_STACK = 2;
 export const RUNNING = 3;
 export const EXITED = 4;
+export const MIXED = 5;
 
 export function statusName(status : number) : string {
     switch (status) {
@@ -77,6 +78,8 @@ export function statusNameShort(status : number) : string {
             return "active";
         case EXITED:
             return "exited";
+        case MIXED:
+            return "mixed";
         default:
             return "?";
     }
@@ -92,6 +95,8 @@ export function statusColor(status : number) : string {
             return "primary";
         case EXITED:
             return "danger";
+        case MIXED:
+            return "warning";
         default:
             return "secondary";
     }
