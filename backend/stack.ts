@@ -513,17 +513,12 @@ export class Stack {
                 return statusList;
             }
 
-            let lines = res.stdout?.toString().split("\n");
-
-            for (let line of lines) {
-                try {
-                    let obj = JSON.parse(line);
-                    if (obj.Health === "") {
-                        statusList.set(obj.Service, obj.State);
-                    } else {
-                        statusList.set(obj.Service, obj.Health);
-                    }
-                } catch (e) {
+            const services = JSON.parse(res.stdout.toString());
+            for (let service of services) {
+                if (service.Health === "") {
+                    statusList.set(service.Service, service.State);
+                } else {
+                    statusList.set(service.Service, service.Health);
                 }
             }
 
