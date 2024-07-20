@@ -8,8 +8,9 @@ FROM louislam/dockge:build-healthcheck AS build_healthcheck
 ############################################
 FROM louislam/dockge:base AS build
 WORKDIR /app
-COPY --chown=node:node  ./package.json ./package.json
-COPY --chown=node:node  ./pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --chown=node:node  . .
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm run build:frontend
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 ############################################
@@ -19,7 +20,9 @@ FROM louislam/dockge:base AS release
 WORKDIR /app
 COPY --chown=node:node --from=build_healthcheck /app/extra/healthcheck /app/extra/healthcheck
 COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/frontend-dist /app/frontend-dist
 COPY --chown=node:node  . .
+RUN rm -rf ./frontend
 RUN mkdir ./data
 
 VOLUME /app/data
