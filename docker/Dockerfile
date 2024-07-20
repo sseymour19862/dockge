@@ -10,7 +10,9 @@ FROM louislam/dockge:base AS build
 WORKDIR /app
 COPY --chown=node:node  ./package.json ./package.json
 COPY --chown=node:node  ./pnpm-lock.yaml ./pnpm-lock.yaml
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile && pnpm run build:frontend
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --dev --frozen-lockfile
+RUN pnpm run build:frontend
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 ############################################
 # ⭐ Main Image
@@ -19,6 +21,7 @@ FROM louislam/dockge:base AS release
 WORKDIR /app
 COPY --chown=node:node --from=build_healthcheck /app/extra/healthcheck /app/extra/healthcheck
 COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/frontend-dist /app/frontend-dist
 COPY --chown=node:node  . .
 RUN mkdir ./data
 
