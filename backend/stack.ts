@@ -93,15 +93,31 @@ export class Stack {
     /**
      * Get the status of the stack from `docker compose ps --format json`
      */
-    async ps() : Promise<object> {
+    async ps() : Promise<object[]> {
         let res = await childProcessAsync.spawn("docker", [ "compose", "ps", "--format", "json" ], {
             cwd: this.path,
             encoding: "utf-8",
         });
         if (!res.stdout) {
-            return {};
+            return [];
         }
-        return JSON.parse(res.stdout.toString());
+        return res.stdout
+            .toString()
+            .split("\n")
+            .map(x => x?.trim())
+            .filter(x => !!x && !x.startsWith("WARN"))
+            .map(x => {
+                const parsed = JSON.parse(x);
+                if (!x.startsWith("[")) {
+                    return [ parsed ];
+                }
+
+                if (typeof parsed !== "object" || !Array.isArray(parsed)) {
+                    throw new Error("Could not parse service from JSON");
+                }
+                return parsed;
+            })
+            .reduce((previous, current) => previous.concat(current), []);
     }
 
     get isManagedByDockge() : boolean {
@@ -501,21 +517,20 @@ export class Stack {
     }
 
     async getServiceStatusList() {
-        let statusList = new Map<string, number>();
+        let statusList = new Map<string, string>();
 
         try {
-            let res = await childProcessAsync.spawn("docker", [ "compose", "ps", "--format", "json" ], {
-                cwd: this.path,
-                encoding: "utf-8",
-            });
-
-            if (!res.stdout) {
+            const services: object[] = await this.ps();
+            if (typeof services !== "object" || !Array.isArray(services)) {
                 return statusList;
             }
 
-            const services = JSON.parse(res.stdout.toString());
             for (let service of services) {
-                if (service.Health === "") {
+                if (!("Service" in service) || typeof service.Service !== "string" || !("State" in service) || typeof service.State !== "string") {
+                    continue;
+                }
+
+                if (!("Health" in service) || typeof service.Health !== "string" || service.Health === "") {
                     statusList.set(service.Service, service.State);
                 } else {
                     statusList.set(service.Service, service.Health);
