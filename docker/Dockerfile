@@ -10,6 +10,7 @@ FROM louislam/dockge:base AS build
 WORKDIR /app
 COPY --chown=node:node  ./package.json ./package.json
 COPY --chown=node:node  ./pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --chown=node:node  ./frontend ./frontend
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm run build:frontend
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
@@ -23,6 +24,7 @@ COPY --chown=node:node --from=build_healthcheck /app/extra/healthcheck /app/extr
 COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/frontend-dist /app/frontend-dist
 COPY --chown=node:node  . .
+RUN rm -rf ./frontend
 RUN mkdir ./data
 
 VOLUME /app/data
