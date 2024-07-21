@@ -90,10 +90,10 @@ export class Stack {
     }
 
     /**
-     * Get the status of the stack from `docker compose ps --format json`
+     * Get the status of the stack from `docker compose ps --all --format json`
      */
     async ps() : Promise<object[]> {
-        let res = await childProcessAsync.spawn("docker", [ "compose", "ps", "--format", "json" ], {
+        let res = await childProcessAsync.spawn("docker", [ "compose", "ps", "--all", "--format", "json" ], {
             cwd: this.path,
             encoding: "utf-8",
         });
