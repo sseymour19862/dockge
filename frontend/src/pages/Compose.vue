@@ -316,17 +316,17 @@ export default {
                 formatOnPaste: true,
                 fontSize: "14px",
                 fontFamily: "'JetBrains Mono', monospace",
+                hideCursorInOverviewRuler: true,
                 lineNumbersMinChars: 2,
                 minimap: {
                     enabled: false
                 },
+                renderLineHighlight: "none",
+                readOnly: true,
                 scrollbar: {
                     alwaysConsumeMouseWheel: false
                 },
                 scrollBeyondLastLine: false,
-                hideCursorInOverviewRuler: true,
-                renderLineHighlight: "none",
-                readOnly: true,
                 wordWrap: "on"
             },
             editorWindowResizeHandlers: []
