@@ -320,6 +320,9 @@ export default {
                 minimap: {
                     enabled: false
                 },
+                scrollbar: {
+                    alwaysConsumeMouseWheel: false
+                },
                 scrollBeyondLastLine: false,
                 hideCursorInOverviewRuler: true,
                 renderLineHighlight: "none",
