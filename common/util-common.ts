@@ -46,12 +46,12 @@ async function initRandomBytes() {
 export const ALL_ENDPOINTS = "##ALL_DOCKGE_ENDPOINTS##";
 
 // Stack Status
-export const UNKNOWN = 0;
-export const CREATED_FILE = 1;
-export const CREATED_STACK = 2;
-export const RUNNING = 3;
-export const EXITED = 4;
-export const MIXED = 5;
+export const RUNNING = 0;
+export const MIXED = 1;
+export const EXITED = 2;
+export const CREATED_STACK = 3;
+export const CREATED_FILE = 4;
+export const UNKNOWN = 5;
 
 export function statusName(status : number) : string {
     switch (status) {
